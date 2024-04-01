@@ -15,6 +15,8 @@
 
 /* Drivers */
 #include "drivers/console.h"
+#include "drivers/i2c.h"
+#include "drivers/lcd.h"
 
 /*******************************************************************************
  * External Global Variables
@@ -36,6 +38,9 @@ int main(void)
     printf("Theremin Serial Interface\n\r");
 
     __enable_irq();
+
+    i2c_init();
+    lcdbegin(20,4);
 
     xTaskCreate(
         task_read_serial,
@@ -68,6 +73,9 @@ void task_read_serial() {
 
             printf("Command received %s\n\r",args[0]);
 
+            if (strcmp(args[0], "lcd") == 0) {
+                writeString(args[1]);
+            }
             ALERT_CONSOLE_RX = false;
             cInputIndex = 0;
             free(args);
