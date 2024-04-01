@@ -13,11 +13,14 @@
 #include <semphr.h>
 #include <event_groups.h>
 
+/* Drivers */
+#include "drivers/console.h"
+
 /*******************************************************************************
  * External Global Variables
  ******************************************************************************/
 
-void task_blink_led(void *param);
+void task_read_serial(); //
 
 int main(void)
 {
@@ -27,15 +30,19 @@ int main(void)
     rslt = cybsp_init();
     CY_ASSERT(CY_RSLT_SUCCESS == rslt);
 
+    console_init();
+
+    printf("\x1b[2J\x1b[;H");
+    printf("Theremin Serial Interface\n\r");
+
     __enable_irq();
 
-    // create a task to blink the onboard LED
     xTaskCreate(
-        task_blink_led,
-        "Blink LED Task",
+        task_read_serial,
+        "Serial Commands Task",
         configMINIMAL_STACK_SIZE,
         NULL,
-        3,
+        1,
         NULL);
 
     // Start the scheduler
@@ -46,32 +53,24 @@ int main(void)
     }
 }
 
-void task_blink_led(void *param)
-{
-    cy_rslt_t rslt;
+void task_read_serial() {
+    for (;;) {
+        if (ALERT_CONSOLE_RX) {
+            char **args = (char **)malloc(128 * sizeof(char*));
+            int argc = 0;
+            char *input = strtok(pcInputString, " ");
+            while(input != NULL) {
+                args[argc] = input;
+                argc++;
+                input = strtok(NULL, " ");
+            }
+            args = (char **)realloc(args, argc * sizeof(char*));
 
-    /* Suppress warning for unused parameter */
-    (void)param;
+            printf("Command received %s\n\r",args[0]);
 
-    // Initialize the pin that control the LED
-    rslt = cyhal_gpio_init(
-        P5_5,
-        CYHAL_GPIO_DIR_OUTPUT,
-        CYHAL_GPIO_DRIVE_STRONG,
-        true);
-
-    if (rslt != CY_RSLT_SUCCESS)
-    {
-        CY_ASSERT(0);
-        while (1)
-        {
-        };
-    }
-
-    /* Repeatedly running part of the task */
-    for (;;)
-    {
-        vTaskDelay(300);
-        cyhal_gpio_toggle(P5_5);
+            ALERT_CONSOLE_RX = false;
+            cInputIndex = 0;
+            free(args);
+        }
     }
 }
