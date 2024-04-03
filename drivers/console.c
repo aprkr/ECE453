@@ -61,7 +61,6 @@ void console_event_handler(void *handler_arg, cyhal_uart_event_t event)
 			{
 				pcInputString[cInputIndex] = 0;
 				ALERT_CONSOLE_RX = true;
-				printf("\n\r");
 			}
 			else
 			{

@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdlib.h>
 
 /* RTOS header files */
 #include <FreeRTOS.h>
@@ -17,6 +18,7 @@
 #include "drivers/console.h"
 #include "drivers/i2c.h"
 #include "drivers/lcd.h"
+#include "drivers/adc.h"
 
 /*******************************************************************************
  * External Global Variables
@@ -41,6 +43,7 @@ int main(void)
 
     i2c_init();
     lcdbegin(20,4);
+    adc_init();
 
     xTaskCreate(
         task_read_serial,
@@ -75,6 +78,10 @@ void task_read_serial() {
 
             if (strcmp(args[0], "lcd") == 0) {
                 writeString(args[1]);
+            }
+            else if (strcmp(args[0], "adc") == 0) {
+                printf("pot 1 %li\n\r", read_adc(adc_chan_0_obj));
+                printf("pot 2 %li\n\r", read_adc(adc_chan_1_obj));
             }
             ALERT_CONSOLE_RX = false;
             cInputIndex = 0;
