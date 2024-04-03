@@ -19,6 +19,7 @@
 #include "drivers/i2c.h"
 #include "drivers/lcd.h"
 #include "drivers/adc.h"
+#include "drivers/distance.h"
 
 /*******************************************************************************
  * External Global Variables
@@ -44,6 +45,7 @@ int main(void)
     i2c_init();
     lcdbegin(20,4);
     adc_init();
+    distancebegin();
 
     xTaskCreate(
         task_read_serial,
@@ -82,6 +84,26 @@ void task_read_serial() {
             else if (strcmp(args[0], "adc") == 0) {
                 printf("pot 1 %li\n\r", read_adc(adc_chan_0_obj));
                 printf("pot 2 %li\n\r", read_adc(adc_chan_1_obj));
+            } else if (strcmp(args[0], "dist") == 0) {
+                printf("\n\rFirst sensor ");
+                setAddress(0x29);
+                uint8_t range = readRange();
+                uint8_t status = readRangeStatus();
+
+                if (status == VL6180X_ERROR_NONE) {
+                    printf("Range: %d\n\r", range);
+                } else {
+                    printf("Error %d\n\r",status);
+                }
+                printf("Second sensor ");
+                setAddress(0x30);
+                range = readRange();
+                status = readRangeStatus();
+                if (status == VL6180X_ERROR_NONE) {
+                    printf("Range: %d\n\r", range);
+                } else {
+                    printf("Error %d\n\r",status);
+                }
             }
             ALERT_CONSOLE_RX = false;
             cInputIndex = 0;
