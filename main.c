@@ -26,8 +26,14 @@
 /*******************************************************************************
  * External Global Variables
  ******************************************************************************/
+volatile uint8_t range_sensor1 = -1;
+volatile uint8_t status_sensor1;
+volatile uint8_t range_sensor2 = -1;
+volatile uint8_t status_sensor2;
 
-void task_read_serial(); //
+// Function declarations
+void task_read_serial();
+void task_read_distance();
 
 int main(void)
 {
@@ -45,7 +51,7 @@ int main(void)
     __enable_irq();
 
     i2c_init();
-    //lcdbegin(20,4);
+    lcdbegin(20,4);
     adc_init();
     distancebegin();
     i2s_init();
@@ -58,11 +64,36 @@ int main(void)
         1,
         NULL);
 
+    xTaskCreate(
+        task_read_distance,
+        "Distance sensor task",
+        configMINIMAL_STACK_SIZE,
+        NULL,
+        1,
+        NULL);
+
     // Start the scheduler
     vTaskStartScheduler();
 
     for (;;)
     {
+    }
+}
+
+void task_read_distance() {
+    for (;;) {
+        setAddress(0x29);
+        range_sensor1 = readRange();
+        status_sensor1 = readRangeStatus();
+        if (status_sensor1 != VL6180X_ERROR_NONE) {
+            range_sensor1 = -1;
+        }
+        setAddress(0x30);
+        range_sensor2 = readRange();
+        status_sensor2 = readRangeStatus();
+        if (status_sensor2 != VL6180X_ERROR_NONE) {
+            range_sensor2 = -1;
+        }
     }
 }
 
@@ -89,24 +120,9 @@ void task_read_serial() {
                 printf("pot 2 %li\n\r", read_adc(adc_chan_1_obj));
             } else if (strcmp(args[0], "dist") == 0) {
                 printf("\n\rFirst sensor ");
-                setAddress(0x29);
-                uint8_t range = readRange();
-                uint8_t status = readRangeStatus();
-
-                if (status == VL6180X_ERROR_NONE) {
-                    printf("Range: %d\n\r", range);
-                } else {
-                    printf("Error %d\n\r",status);
-                }
+                printf("Range: %d\n\r", range_sensor1);
                 printf("Second sensor ");
-                setAddress(0x30);
-                range = readRange();
-                status = readRangeStatus();
-                if (status == VL6180X_ERROR_NONE) {
-                    printf("Range: %d\n\r", range);
-                } else {
-                    printf("Error %d\n\r",status);
-                }
+                printf("Range: %d\n\r", range_sensor2);
             }
             else if (strcmp(args[0], "i2s") == 0) {
                 /* Start the I2S TX */
