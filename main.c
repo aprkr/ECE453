@@ -19,6 +19,8 @@
 #include "drivers/i2c.h"
 #include "drivers/lcd.h"
 #include "drivers/adc.h"
+#include "drivers/i2s.h"
+#include "sounds/wave.h"
 
 /*******************************************************************************
  * External Global Variables
@@ -42,8 +44,9 @@ int main(void)
     __enable_irq();
 
     i2c_init();
-    lcdbegin(20,4);
+    //lcdbegin(20,4);
     adc_init();
+    i2s_init();
 
     xTaskCreate(
         task_read_serial,
@@ -82,6 +85,13 @@ void task_read_serial() {
             else if (strcmp(args[0], "adc") == 0) {
                 printf("pot 1 %li\n\r", read_adc(adc_chan_0_obj));
                 printf("pot 2 %li\n\r", read_adc(adc_chan_1_obj));
+            }
+            else if (strcmp(args[0], "i2s") == 0) {
+                /* Start the I2S TX */
+                cyhal_i2s_start_tx(&i2s);
+
+                /* If not transmitting, initiate a transfer */
+                cyhal_i2s_write_async(&i2s, wave_data, WAVE_SIZE);
             }
             ALERT_CONSOLE_RX = false;
             cInputIndex = 0;
