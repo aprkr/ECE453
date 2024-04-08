@@ -20,7 +20,6 @@
 #include "drivers/lcd.h"
 #include "drivers/adc.h"
 #include "drivers/i2s.h"
-#include "sounds/wave.h"
 #include "drivers/distance.h"
 
 /*******************************************************************************
@@ -123,20 +122,6 @@ void task_read_serial() {
                 printf("Range: %d\n\r", range_sensor1);
                 printf("Second sensor ");
                 printf("Range: %d\n\r", range_sensor2);
-            }
-            else if (strcmp(args[0], "i2s") == 0) {
-                /* Start the I2S TX */
-                cyhal_i2s_start_tx(&i2s);
-
-                /* If not transmitting, initiate a transfer */
-                cyhal_i2s_write_async(&i2s, wave_data, WAVE_SIZE);
-            }
-            else if (strcmp(args[0], "i2s") == 0) {
-                /* Start the I2S TX */
-                cyhal_i2s_start_tx(&i2s);
-
-                /* If not transmitting, initiate a transfer */
-                cyhal_i2s_write_async(&i2s, wave_data, WAVE_SIZE);
             }
             ALERT_CONSOLE_RX = false;
             cInputIndex = 0;

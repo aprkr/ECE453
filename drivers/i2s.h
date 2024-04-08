@@ -36,4 +36,6 @@ extern cyhal_clock_t system_clock;
 /* Public API */
 void i2s_init();
 
+void i2s_transmit();
+
 #endif /* I2S_H_ */
