@@ -8,6 +8,14 @@
 #ifndef CONSOLE_H_
 #define CONSOLE_H_
 
+#include <FreeRTOS.h>
+#include <FreeRTOSConfig.h>
+#include <task.h>
+#include <semphr.h>
+#include <event_groups.h>
+
+extern TaskHandle_t console_task;
+
 #include "cy_pdl.h"
 #include "cyhal.h"
 #include "cybsp.h"
@@ -21,8 +29,6 @@
 #define DEBUG_MESSAGE_MAX_LEN   (100u)
 #define INT_PRIORITY_CONSOLE	3
 
-
-extern volatile bool ALERT_CONSOLE_RX;
 
 extern char pcInputString[];
 extern int8_t cInputIndex;

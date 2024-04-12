@@ -10,7 +10,7 @@
 #define ENABLE_UART_RX_IRQ	1
 
 extern cyhal_uart_t cy_retarget_io_uart_obj;
-volatile bool ALERT_CONSOLE_RX = false;
+TaskHandle_t console_task;
 
 char pcInputString[ DEBUG_MESSAGE_MAX_LEN ];
 int8_t cInputIndex = 0;
@@ -60,7 +60,7 @@ void console_event_handler(void *handler_arg, cyhal_uart_event_t event)
 			if (c == '\n' || c == '\r')
 			{
 				pcInputString[cInputIndex] = 0;
-				ALERT_CONSOLE_RX = true;
+				xTaskNotifyFromISR(console_task, 0, eNoAction, NULL);
 			}
 			else
 			{

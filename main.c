@@ -20,6 +20,7 @@
 #include "drivers/lcd.h"
 #include "drivers/adc.h"
 #include "drivers/i2s.h"
+#include "sounds/wave.h"
 #include "drivers/distance.h"
 
 /*******************************************************************************
@@ -60,8 +61,8 @@ int main(void)
         "Serial Commands Task",
         configMINIMAL_STACK_SIZE,
         NULL,
-        1,
-        NULL);
+        3,
+        &console_task);
 
     xTaskCreate(
         task_read_distance,
@@ -97,35 +98,48 @@ void task_read_distance() {
 }
 
 void task_read_serial() {
+    uint32_t ulNotifiedValue;
     for (;;) {
-        if (ALERT_CONSOLE_RX) {
-            char **args = (char **)malloc(128 * sizeof(char*));
-            int argc = 0;
-            char *input = strtok(pcInputString, " ");
-            while(input != NULL) {
-                args[argc] = input;
-                argc++;
-                input = strtok(NULL, " ");
-            }
-            args = (char **)realloc(args, argc * sizeof(char*));
-
-            printf("Command received %s\n\r",args[0]);
-
-            if (strcmp(args[0], "lcd") == 0) {
-                writeString(args[1]);
-            }
-            else if (strcmp(args[0], "adc") == 0) {
-                printf("pot 1 %li\n\r", read_adc(adc_chan_0_obj));
-                printf("pot 2 %li\n\r", read_adc(adc_chan_1_obj));
-            } else if (strcmp(args[0], "dist") == 0) {
-                printf("\n\rFirst sensor ");
-                printf("Range: %d\n\r", range_sensor1);
-                printf("Second sensor ");
-                printf("Range: %d\n\r", range_sensor2);
-            }
-            ALERT_CONSOLE_RX = false;
-            cInputIndex = 0;
-            free(args);
+        xTaskNotifyWait(0x00, 0, &ulNotifiedValue, portMAX_DELAY);
+        char **args = (char **)malloc(128 * sizeof(char*));
+        int argc = 0;
+        char *input = strtok(pcInputString, " ");
+        while(input != NULL) {
+            args[argc] = input;
+            argc++;
+            input = strtok(NULL, " ");
         }
+        args = (char **)realloc(args, argc * sizeof(char*));
+
+        printf("Command received %s\n\r",args[0]);
+
+        if (strcmp(args[0], "lcd") == 0) {
+            writeString(args[1]);
+        }
+        else if (strcmp(args[0], "adc") == 0) {
+            printf("pot 1 %li\n\r", read_adc(adc_chan_0_obj));
+            printf("pot 2 %li\n\r", read_adc(adc_chan_1_obj));
+        } else if (strcmp(args[0], "dist") == 0) {
+            printf("\n\rFirst sensor ");
+            printf("Range: %d\n\r", range_sensor1);
+            printf("Second sensor ");
+            printf("Range: %d\n\r", range_sensor2);
+        }
+        else if (strcmp(args[0], "i2s") == 0) {
+            /* Start the I2S TX */
+            cyhal_i2s_start_tx(&i2s);
+
+            /* If not transmitting, initiate a transfer */
+            cyhal_i2s_write_async(&i2s, wave_data, WAVE_SIZE);
+        }
+        else if (strcmp(args[0], "i2s") == 0) {
+            /* Start the I2S TX */
+            cyhal_i2s_start_tx(&i2s);
+
+            /* If not transmitting, initiate a transfer */
+            cyhal_i2s_write_async(&i2s, wave_data, WAVE_SIZE);
+        }
+        cInputIndex = 0;
+        free(args);
     }
 }
