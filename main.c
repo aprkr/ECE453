@@ -26,14 +26,17 @@
 /*******************************************************************************
  * External Global Variables
  ******************************************************************************/
-volatile uint8_t range_sensor1 = -1;
+volatile uint8_t range_sensor1 = 0;
 volatile uint8_t status_sensor1;
-volatile uint8_t range_sensor2 = -1;
+volatile uint8_t range_sensor2 = 0;
 volatile uint8_t status_sensor2;
 
 // Function declarations
 void task_read_serial();
 void task_read_distance();
+void task_lcd_status();
+void task_blink_led();
+
 
 int main(void)
 {
@@ -55,6 +58,9 @@ int main(void)
     adc_init();
     distancebegin();
     i2s_init();
+    cyhal_gpio_init(P5_5, CYHAL_GPIO_DIR_OUTPUT, CYHAL_GPIO_DRIVE_STRONG, 1);
+    cyhal_gpio_init(P7_2, CYHAL_GPIO_DIR_OUTPUT, CYHAL_GPIO_DRIVE_STRONG, 1);
+
 
     xTaskCreate(
         task_read_serial,
@@ -69,6 +75,22 @@ int main(void)
         "Distance sensor task",
         configMINIMAL_STACK_SIZE,
         NULL,
+        2,
+        NULL);
+
+    xTaskCreate(
+        task_blink_led,
+        "Led blink task",
+        configMINIMAL_STACK_SIZE,
+        NULL,
+        1,
+        NULL);
+
+    xTaskCreate(
+        task_lcd_status,
+        "LCD Display task",
+        configMINIMAL_STACK_SIZE,
+        NULL,
         1,
         NULL);
 
@@ -80,20 +102,45 @@ int main(void)
     }
 }
 
-void task_read_distance() {
+void task_blink_led() {
+    TickType_t lastticktime = xTaskGetTickCount();
     for (;;) {
-        setAddress(0x29);
+        xTaskDelayUntil( &lastticktime, 1000);
+        cyhal_gpio_toggle(P7_2);
+    }
+}
+
+void task_lcd_status() {
+
+    backlight();
+    char *sensor1valuestring[3];
+    TickType_t lastticktime = xTaskGetTickCount();
+    for (;;) {
+        xTaskDelayUntil( &lastticktime, 500);
+        cyhal_gpio_toggle(P5_5);
+        sprintf(sensor1valuestring, "%d", range_sensor1);
+        writeString(sensor1valuestring);        
+    }
+    // cyhal_system_delay_ms(5000);
+}
+
+void task_read_distance() {
+
+    TickType_t lastticktime = xTaskGetTickCount();
+    for (;;) {
+        xTaskDelayUntil( &lastticktime, 300);
+        setAddress(0x29); // This is the sensor WITH GPIO0 connected
         range_sensor1 = readRange();
         status_sensor1 = readRangeStatus();
         if (status_sensor1 != VL6180X_ERROR_NONE) {
             range_sensor1 = -1;
         }
-        setAddress(0x30);
-        range_sensor2 = readRange();
-        status_sensor2 = readRangeStatus();
-        if (status_sensor2 != VL6180X_ERROR_NONE) {
-            range_sensor2 = -1;
-        }
+        // setAddress(0x30);
+        // range_sensor2 = readRange();
+        // status_sensor2 = readRangeStatus();
+        // if (status_sensor2 != VL6180X_ERROR_NONE) {
+        //     range_sensor2 = -1;
+        // }
     }
 }
 
