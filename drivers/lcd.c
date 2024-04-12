@@ -257,8 +257,6 @@ void write(uint8_t value) {
 
 void writeString(char *s) {
 	clear();
-	home();
-	backlight();
 	int done = 0;
 	for (int rows = 0; rows < 4; rows++) {
 		for (int cols = 0; cols < 20; cols++) {
