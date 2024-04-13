@@ -79,7 +79,7 @@ void lcdbegin(uint8_t cols, uint8_t lines) {
   
 	// Now we pull both RS and R/W low to begin commands
 	expanderWrite(_backlightval);	// reset expanderand turn backlight off (Bit 8 =1)
-	cyhal_system_delay_ms(1000);
+	cyhal_system_delay_ms(10);
 
   	//put the LCD into 4 bit mode
 	// this is according to the hitachi HD44780 datasheet
@@ -124,12 +124,12 @@ void lcdbegin(uint8_t cols, uint8_t lines) {
 /********** high level commands, for the user! */
 void clear(){
 	command(LCD_CLEARDISPLAY);// clear display, set cursor position to zero
-	cyhal_system_delay_us(2000);  // this command takes a long time!
+	cyhal_system_delay_ms(2);  // this command takes a long time!
 }
 
 void home(){
 	command(LCD_RETURNHOME);  // set cursor position to zero
-	cyhal_system_delay_us(2000);  // this command takes a long time!
+	cyhal_system_delay_ms(2);  // this command takes a long time!
 }
 
 void setCursor(uint8_t col, uint8_t row){
