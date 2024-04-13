@@ -113,12 +113,12 @@ void task_blink_led() {
 void task_lcd_status() {
 
     backlight();
-    char *sensor1valuestring[3];
+    char *sensor1valuestring = malloc(25*4);
     TickType_t lastticktime = xTaskGetTickCount();
     for (;;) {
         xTaskDelayUntil( &lastticktime, 500);
         cyhal_gpio_toggle(P5_5);
-        sprintf(sensor1valuestring, "%d", range_sensor1);
+        sprintf(sensor1valuestring, "Range 1:%3d%*sRange 2:%3d", range_sensor1, 9, "", range_sensor2);
         writeString(sensor1valuestring);        
     }
     // cyhal_system_delay_ms(5000);
@@ -128,19 +128,19 @@ void task_read_distance() {
 
     TickType_t lastticktime = xTaskGetTickCount();
     for (;;) {
-        xTaskDelayUntil( &lastticktime, 300);
+        xTaskDelayUntil( &lastticktime, 100);
         setAddress(0x29); // This is the sensor WITH GPIO0 connected
         range_sensor1 = readRange();
         status_sensor1 = readRangeStatus();
         if (status_sensor1 != VL6180X_ERROR_NONE) {
             range_sensor1 = -1;
         }
-        // setAddress(0x30);
-        // range_sensor2 = readRange();
-        // status_sensor2 = readRangeStatus();
-        // if (status_sensor2 != VL6180X_ERROR_NONE) {
-        //     range_sensor2 = -1;
-        // }
+        setAddress(0x30);
+        range_sensor2 = readRange();
+        status_sensor2 = readRangeStatus();
+        if (status_sensor2 != VL6180X_ERROR_NONE) {
+            range_sensor2 = -1;
+        }
     }
 }
 
