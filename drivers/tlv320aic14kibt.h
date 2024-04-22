@@ -22,10 +22,10 @@
 #define TLV320AIC14KIBT_CONTROL_REG_5       0x05
 #define TLV320AIC14KIBT_CONTROL_REG_6       0x06
 /* commands */
-#define TLV320AIC14KIBT_ACCEPT_TRANS        0x41
+#define TLV320AIC14KIBT_ACCEPT_TRANS        0x40
 
 
 /* Public API */
-void tlv320aic14kibt_convert();
+void tlv320aic14kibt_init();
 
 #endif /* TLV320AIC14KIBT_H_ */

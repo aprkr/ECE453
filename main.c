@@ -21,6 +21,8 @@
 #include "drivers/adc.h"
 #include "drivers/i2s.h"
 #include "drivers/distance.h"
+#include "drivers/tlv320aic14kibt.h"
+#include "sounds/wave.h"
 
 /*******************************************************************************
  * External Global Variables
@@ -50,9 +52,9 @@ int main(void)
     __enable_irq();
 
     i2c_init();
-    lcdbegin(20,4);
-    adc_init();
-    distancebegin();
+    //lcdbegin(20,4);
+    //adc_init();
+    //distancebegin();
     i2s_init();
 
     xTaskCreate(
@@ -63,13 +65,13 @@ int main(void)
         1,
         NULL);
 
-    xTaskCreate(
-        task_read_distance,
-        "Distance sensor task",
-        configMINIMAL_STACK_SIZE,
-        NULL,
-        1,
-        NULL);
+    // xTaskCreate(
+    //     task_read_distance,
+    //     "Distance sensor task",
+    //     configMINIMAL_STACK_SIZE,
+    //     NULL,
+    //     1,
+    //     NULL);
 
     // Start the scheduler
     vTaskStartScheduler();
@@ -122,6 +124,13 @@ void task_read_serial() {
                 printf("Range: %d\n\r", range_sensor1);
                 printf("Second sensor ");
                 printf("Range: %d\n\r", range_sensor2);
+            } else if (strcmp(args[0], "i2s") == 0) {
+                tlv320aic14kibt_init();
+                /* Start the I2S TX */
+                cyhal_i2s_start_tx(&i2s);
+
+                /* If not transmitting, initiate a transfer */
+                cyhal_i2s_write_async(&i2s, __wave_wav, __wave_wav_size);
             }
             ALERT_CONSOLE_RX = false;
             cInputIndex = 0;
