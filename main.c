@@ -24,6 +24,7 @@
 #include "drivers/distance.h"
 #include "drivers/tlv320aic14kibt.h"
 #include "sounds/wave.h"
+#include "drivers/gpio.h"
 
 /*******************************************************************************
  * External Global Variables
@@ -41,6 +42,7 @@ void task_read_distance();
 void task_lcd_status();
 void task_blink_led();
 void task_read_adc();
+void task_read_switch();
 
 
 int main(void)
@@ -59,12 +61,11 @@ int main(void)
     __enable_irq();
 
     i2c_init();
-    //lcdbegin(20,4);
-    //adc_init();
-    //distancebegin();
+    lcdbegin(20,4);
+    adc_init();
+    distancebegin();
     i2s_init();
-    cyhal_gpio_init(P5_5, CYHAL_GPIO_DIR_OUTPUT, CYHAL_GPIO_DRIVE_STRONG, 1);
-    cyhal_gpio_init(P7_2, CYHAL_GPIO_DIR_OUTPUT, CYHAL_GPIO_DRIVE_STRONG, 1);
+    gpio_init();
 
 
     xTaskCreate(
@@ -107,11 +108,38 @@ int main(void)
         1,
         NULL);
 
+    xTaskCreate(
+        task_read_switch,
+        "Switch and button read task",
+        configMINIMAL_STACK_SIZE,
+        NULL,
+        1,
+        NULL);
+
     // Start the scheduler
     vTaskStartScheduler();
 
     for (;;)
     {
+    }
+}
+
+void task_read_switch() {
+    TickType_t lastticktime = xTaskGetTickCount();
+    for (;;) {
+        cyhal_gpio_toggle(BLINK_TASK_PIN_EXTRA);
+        xTaskDelayUntil( &lastticktime, 200);
+        if (cyhal_gpio_read(BUTTON_PIN) == false) {
+            xTaskDelayUntil( &lastticktime, 1000); // test delay
+        }
+        if (cyhal_gpio_read(SWITCH_PIN) == true) { // having true = off
+            noBacklight();
+            vTaskSuspendAll();
+            while(cyhal_gpio_read(SWITCH_PIN) == true) {
+                cyhal_syspm_sleep();
+            }
+            __NVIC_SystemReset();
+        }
     }
 }
 
@@ -128,7 +156,7 @@ void task_blink_led() {
     TickType_t lastticktime = xTaskGetTickCount();
     for (;;) {
         xTaskDelayUntil( &lastticktime, 1000);
-        cyhal_gpio_toggle(P7_2);
+        cyhal_gpio_toggle(BLINK_TASK_PIN);
     }
 }
 
@@ -136,13 +164,11 @@ void task_lcd_status() {
 
     backlight();
     char *lcdstring = malloc(25*4);
-    // lcdstring = "Range 1:\nRange 2:\nADC value 1:\nADC value 2:";
     sprintf(lcdstring, "Range 1:\nRange 2:\nADC value 1:\nADC value 2:");
     writeString(lcdstring);
     TickType_t lastticktime = xTaskGetTickCount();
     for (;;) {
         xTaskDelayUntil( &lastticktime, 500);
-        cyhal_gpio_toggle(P5_5);
         sprintf(lcdstring,"%3d",range_sensor1);
         writeStringWithoutClear(0, 8, lcdstring, 3);
         sprintf(lcdstring,"%3d",range_sensor2);
@@ -150,11 +176,8 @@ void task_lcd_status() {
         sprintf(lcdstring,"%7lu",adc0_value);
         writeStringWithoutClear(2, 12, lcdstring, 7);
         sprintf(lcdstring,"%7lu",adc1_value);
-        writeStringWithoutClear(3, 12, lcdstring, 7);
-        // sprintf(lcdstring, "Range 1:%3d%*sRange 2:%3d%*sADC values: %lu %lu", range_sensor1, 9, "", range_sensor2, 9, "",adc0_value,adc1_value);
-        // writeString(sensor1valuestring);        
+        writeStringWithoutClear(3, 12, lcdstring, 7);       
     }
-    // cyhal_system_delay_ms(5000);
 }
 
 void task_read_distance() {
@@ -210,7 +233,7 @@ void task_read_serial() {
                 cyhal_i2s_start_tx(&i2s);
 
                 /* If not transmitting, initiate a transfer */
-                cyhal_i2s_write_async(&i2s, __wave_wav, __wave_wav_size);
+                // cyhal_i2s_write_async(&i2s, __wave_wav, __wave_wav_size);
         }
         else if (strcmp(args[0], "i2s") == 0) {
             /* Start the I2S TX */
@@ -224,7 +247,7 @@ void task_read_serial() {
             cyhal_i2s_start_tx(&i2s);
 
             /* If not transmitting, initiate a transfer */
-            cyhal_i2s_write_async(&i2s, wave_data, WAVE_SIZE);
+            // cyhal_i2s_write_async(&i2s, wave_data, WAVE_SIZE);
         }
         cInputIndex = 0;
         free(args);
