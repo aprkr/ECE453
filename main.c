@@ -35,6 +35,8 @@ volatile uint8_t range_sensor2 = 0;
 volatile uint8_t status_sensor2;
 volatile uint32_t adc0_value;
 volatile uint32_t adc1_value;
+volatile uint8_t curLcdMode = 0;
+volatile uint8_t buttonPressed = 0;
 
 // Function declarations
 void task_read_serial();
@@ -129,8 +131,16 @@ void task_read_switch() {
     for (;;) {
         cyhal_gpio_toggle(BLINK_TASK_PIN_EXTRA);
         xTaskDelayUntil( &lastticktime, 200);
-        if (cyhal_gpio_read(BUTTON_PIN) == false) {
-            xTaskDelayUntil( &lastticktime, 1000); // test delay
+        if (cyhal_gpio_read(BUTTON_PIN) == false && buttonPressed == 0) {
+            buttonPressed ^= 1;
+            curLcdMode ^= 1;
+            if (curLcdMode == 0) {
+                writeString("Range 1:\nRange 2:\nADC value 1:\nADC value 2:");
+            } else if (curLcdMode == 1) {
+                writeString("User mode");
+            }
+        } else if (cyhal_gpio_read(BUTTON_PIN) == true && buttonPressed == 1) {
+            buttonPressed ^= 1;
         }
         if (cyhal_gpio_read(SWITCH_PIN) == true) { // having true = off
             noBacklight();
@@ -164,19 +174,28 @@ void task_lcd_status() {
 
     backlight();
     char *lcdstring = malloc(25*4);
-    sprintf(lcdstring, "Range 1:\nRange 2:\nADC value 1:\nADC value 2:");
+    if (curLcdMode == 0) {
+        sprintf(lcdstring, "Range 1:\nRange 2:\nADC value 1:\nADC value 2:");
+    } else {
+        sprintf(lcdstring, "User Mode Test");
+    }
     writeString(lcdstring);
     TickType_t lastticktime = xTaskGetTickCount();
     for (;;) {
         xTaskDelayUntil( &lastticktime, 500);
-        sprintf(lcdstring,"%3d",range_sensor1);
-        writeStringWithoutClear(0, 8, lcdstring, 3);
-        sprintf(lcdstring,"%3d",range_sensor2);
-        writeStringWithoutClear(1, 8, lcdstring, 3);
-        sprintf(lcdstring,"%7lu",adc0_value);
-        writeStringWithoutClear(2, 12, lcdstring, 7);
-        sprintf(lcdstring,"%7lu",adc1_value);
-        writeStringWithoutClear(3, 12, lcdstring, 7);       
+        if (curLcdMode == 0) {
+            sprintf(lcdstring,"%3d",range_sensor1);
+            writeStringWithoutClear(0, 8, lcdstring, 3);
+            sprintf(lcdstring,"%3d",range_sensor2);
+            writeStringWithoutClear(1, 8, lcdstring, 3);
+            sprintf(lcdstring,"%7lu",adc0_value);
+            writeStringWithoutClear(2, 12, lcdstring, 7);
+            sprintf(lcdstring,"%7lu",adc1_value);
+            writeStringWithoutClear(3, 12, lcdstring, 7);
+        } else {
+            sprintf(lcdstring, "User Mode Task");
+            writeStringWithoutClear(1, 0, lcdstring, 4);
+        }
     }
 }
 
@@ -185,12 +204,12 @@ void task_read_distance() {
     TickType_t lastticktime = xTaskGetTickCount();
     for (;;) {
         xTaskDelayUntil( &lastticktime, 100);
-        setAddress(0x29); // This is the sensor WITH GPIO0 connected
-        range_sensor1 = readRange();
-        status_sensor1 = readRangeStatus();
-        if (status_sensor1 != VL6180X_ERROR_NONE) {
-            range_sensor1 = -1;
-        }
+        // setAddress(0x29); // This is the sensor WITH GPIO0 connected
+        // range_sensor1 = readRange();
+        // status_sensor1 = readRangeStatus();
+        // if (status_sensor1 != VL6180X_ERROR_NONE) {
+        //     range_sensor1 = -1;
+        // }
         setAddress(0x30);
         range_sensor2 = readRange();
         status_sensor2 = readRangeStatus();
