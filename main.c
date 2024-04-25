@@ -135,13 +135,24 @@ void task_blink_led() {
 void task_lcd_status() {
 
     backlight();
-    char *sensor1valuestring = malloc(25*4);
+    char *lcdstring = malloc(25*4);
+    // lcdstring = "Range 1:\nRange 2:\nADC value 1:\nADC value 2:";
+    sprintf(lcdstring, "Range 1:\nRange 2:\nADC value 1:\nADC value 2:");
+    writeString(lcdstring);
     TickType_t lastticktime = xTaskGetTickCount();
     for (;;) {
         xTaskDelayUntil( &lastticktime, 500);
         cyhal_gpio_toggle(P5_5);
-        sprintf(sensor1valuestring, "Range 1:%3d%*sRange 2:%3d%*sADC values: %lu %lu", range_sensor1, 9, "", range_sensor2, 9, "",adc0_value,adc1_value);
-        writeString(sensor1valuestring);        
+        sprintf(lcdstring,"%3d",range_sensor1);
+        writeStringWithoutClear(0, 8, lcdstring, 3);
+        sprintf(lcdstring,"%3d",range_sensor2);
+        writeStringWithoutClear(1, 8, lcdstring, 3);
+        sprintf(lcdstring,"%7lu",adc0_value);
+        writeStringWithoutClear(2, 12, lcdstring, 7);
+        sprintf(lcdstring,"%7lu",adc1_value);
+        writeStringWithoutClear(3, 12, lcdstring, 7);
+        // sprintf(lcdstring, "Range 1:%3d%*sRange 2:%3d%*sADC values: %lu %lu", range_sensor1, 9, "", range_sensor2, 9, "",adc0_value,adc1_value);
+        // writeString(sensor1valuestring);        
     }
     // cyhal_system_delay_ms(5000);
 }

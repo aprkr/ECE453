@@ -258,11 +258,15 @@ void write(uint8_t value) {
 void writeString(char *s) {
 	clear();
 	int done = 0;
+	int index = 0;
 	for (int rows = 0; rows < 4; rows++) {
 		for (int cols = 0; cols < 20; cols++) {
-			char value = s[rows * 20 + cols];
+			char value = s[index];
+			index++;
 			if (value == 0) {
 				done = 1;
+				break;
+			} else if (value == '\n') {
 				break;
 			}
 			write(value);
@@ -271,6 +275,13 @@ void writeString(char *s) {
 			break;
 		}
 	setCursor(0, rows+1);
+	}
+}
+
+void writeStringWithoutClear(int row, int col, char *s, int len) {
+	setCursor(col, row);
+	for (int i = 0; i < len; i++) {
+		write(s[i]);
 	}
 }
 
