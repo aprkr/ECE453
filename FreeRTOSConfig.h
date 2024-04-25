@@ -55,7 +55,7 @@
 
 // #warning This is a template. Copy this file to your project and remove this line. Refer to FreeRTOS README.md for usage details.
 
-#define configUSE_PREEMPTION                    1
+#define configUSE_PREEMPTION                    0
 #define configUSE_PORT_OPTIMISED_TASK_SELECTION 0
 extern uint32_t SystemCoreClock;
 #define configCPU_CLOCK_HZ                      SystemCoreClock

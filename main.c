@@ -32,12 +32,15 @@ volatile uint8_t range_sensor1 = 0;
 volatile uint8_t status_sensor1;
 volatile uint8_t range_sensor2 = 0;
 volatile uint8_t status_sensor2;
+volatile uint32_t adc0_value;
+volatile uint32_t adc1_value;
 
 // Function declarations
 void task_read_serial();
 void task_read_distance();
 void task_lcd_status();
 void task_blink_led();
+void task_read_adc();
 
 
 int main(void)
@@ -96,11 +99,28 @@ int main(void)
         1,
         NULL);
 
+    xTaskCreate(
+        task_read_adc,
+        "ADC read task",
+        configMINIMAL_STACK_SIZE,
+        NULL,
+        1,
+        NULL);
+
     // Start the scheduler
     vTaskStartScheduler();
 
     for (;;)
     {
+    }
+}
+
+void task_read_adc() {
+    TickType_t lastticktime = xTaskGetTickCount();
+    for (;;) {
+        xTaskDelayUntil( &lastticktime, 200);
+        adc0_value = read_adc(adc_chan_0_obj);
+        adc1_value = read_adc(adc_chan_1_obj);
     }
 }
 
@@ -120,7 +140,7 @@ void task_lcd_status() {
     for (;;) {
         xTaskDelayUntil( &lastticktime, 500);
         cyhal_gpio_toggle(P5_5);
-        sprintf(sensor1valuestring, "Range 1:%3d%*sRange 2:%3d", range_sensor1, 9, "", range_sensor2);
+        sprintf(sensor1valuestring, "Range 1:%3d%*sRange 2:%3d%*sADC values: %lu %lu", range_sensor1, 9, "", range_sensor2, 9, "",adc0_value,adc1_value);
         writeString(sensor1valuestring);        
     }
     // cyhal_system_delay_ms(5000);
