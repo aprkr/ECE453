@@ -54,6 +54,7 @@ void task_lcd_status();
 void task_blink_led();
 void task_read_adc();
 void task_read_switch();
+void task_sound();
 
 
 int main(void)
@@ -92,7 +93,7 @@ int main(void)
         "Distance sensor task",
         configMINIMAL_STACK_SIZE,
         NULL,
-        2,
+        1,
         NULL);
 
     xTaskCreate(
@@ -126,12 +127,63 @@ int main(void)
         NULL,
         1,
         NULL);
+    
+    xTaskCreate(
+        task_sound,
+        "Play sound task",
+        configMINIMAL_STACK_SIZE,
+        NULL,
+        2,
+        NULL);
 
     // Start the scheduler
     vTaskStartScheduler();
 
     for (;;)
     {
+    }
+}
+
+void i2s_buff(cyhal_i2s_t i2s, int16_t buf, int size) {
+    cyhal_i2s_start_tx(&i2s);
+    cyhal_i2s_write_async(&i2s, buf, size);
+    cyhal_i2s_start_tx(&i2s);
+    TickType_t lastticktime = xTaskGetTickCount();
+    while(cyhal_i2s_is_tx_busy(&i2s)){
+        xTaskDelayUntil( &lastticktime, 10);
+    }
+    cyhal_i2s_stop_tx(&i2s);
+
+}
+
+void task_sound() {
+    TickType_t lastticktime = xTaskGetTickCount();
+    // cut sound files to start on a rise at 0, and end on a rise to 0
+    // switch to interrupt based rather than timer based
+    // fill when buffer is empty
+    cyhal_i2s_start_tx(&i2s);
+    for (;;) {
+        xTaskDelayUntil( &lastticktime, 50);
+        if (range_sensor1 > 100) {
+            
+            cyhal_i2s_write_async(&i2s, C, C_size/30);
+            // printf("HERE C\n");
+            // cyhal_i2s_start_tx(&i2s);
+            // while(cyhal_i2s_is_tx_busy(&i2s)){
+            //     xTaskDelayUntil( &lastticktime, 1);
+            // }
+            // cyhal_i2s_stop_tx(&i2s);
+        } else {
+            // cyhal_i2s_start_tx(&i2s);
+            cyhal_i2s_write_async(&i2s, D, D_size/30);
+            // printf("HERE C\n");
+            // cyhal_i2s_start_tx(&i2s);
+            // while(cyhal_i2s_is_tx_busy(&i2s)){
+            //     xTaskDelayUntil( &lastticktime, 1);
+            // }
+            // cyhal_i2s_stop_tx(&i2s);
+        }
+        
     }
 }
 
