@@ -15,9 +15,9 @@ const cyhal_i2s_config_t i2s_config = {
     .is_tx_slave    = false,    /* TX is Master */
     .is_rx_slave    = false,    /* RX not used */
     .mclk_hz        = 0,        /* External MCLK not used */
-    .channel_length = 32,       /* In bits */
+    .channel_length = 16,       /* In bits */
     .word_length    = 16,       /* In bits */
-    .sample_rate_hz = 8000,    /* In Hz */
+    .sample_rate_hz = 16000,    /* In Hz */
 };
 
 void i2s_isr_handler(void *arg, cyhal_i2s_event_t event){
@@ -59,6 +59,6 @@ void i2s_init(){
 
     /* Initialize the I2S */
     cyhal_i2s_init(&i2s, &i2s_pins, NULL, &i2s_config, &audio_clock);
-    cyhal_i2s_register_callback(&i2s, i2s_isr_handler, NULL);
-    cyhal_i2s_enable_event(&i2s, CYHAL_I2S_ASYNC_TX_COMPLETE, CYHAL_ISR_PRIORITY_DEFAULT, true);
+    // cyhal_i2s_register_callback(&i2s, i2s_isr_handler, NULL);
+    // cyhal_i2s_enable_event(&i2s, CYHAL_I2S_ASYNC_TX_COMPLETE, CYHAL_ISR_PRIORITY_DEFAULT, true);
 }

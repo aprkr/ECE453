@@ -26,6 +26,14 @@
 #include "sounds/wave.h"
 #include "drivers/gpio.h"
 
+#include "sounds/A.h"
+#include "sounds/B.h"
+#include "sounds/C.h"
+#include "sounds/D.h"
+#include "sounds/E.h"
+#include "sounds/F.h"
+#include "sounds/G.h"
+
 /*******************************************************************************
  * External Global Variables
  ******************************************************************************/
@@ -37,6 +45,7 @@ volatile uint32_t adc0_value;
 volatile uint32_t adc1_value;
 volatile uint8_t curLcdMode = 0;
 volatile uint8_t buttonPressed = 0;
+volatile uint8_t scale;
 
 // Function declarations
 void task_read_serial();
@@ -246,27 +255,82 @@ void task_read_serial() {
             printf("Range: %d\n\r", range_sensor1);
             printf("Second sensor ");
             printf("Range: %d\n\r", range_sensor2);
-            } else if (strcmp(args[0], "i2s") == 0) {
-                tlv320aic14kibt_init();
-                /* Start the I2S TX */
-                cyhal_i2s_start_tx(&i2s);
-
-                /* If not transmitting, initiate a transfer */
-                // cyhal_i2s_write_async(&i2s, __wave_wav, __wave_wav_size);
-        }
-        else if (strcmp(args[0], "i2s") == 0) {
-            /* Start the I2S TX */
-            cyhal_i2s_start_tx(&i2s);
-
-            /* If not transmitting, initiate a transfer */
-            cyhal_i2s_write_async(&i2s, wave_data, WAVE_SIZE);
-        }
-        else if (strcmp(args[0], "i2s") == 0) {
-            /* Start the I2S TX */
-            cyhal_i2s_start_tx(&i2s);
-
-            /* If not transmitting, initiate a transfer */
-            // cyhal_i2s_write_async(&i2s, wave_data, WAVE_SIZE);
+        } else if (strcmp(args[0], "i2s") == 0) {
+            for(int i = 0; i < 16; i++){
+                switch(scale){
+                    case 0:
+                        cyhal_i2s_start_tx(&i2s);
+                        cyhal_i2s_write_async(&i2s, C, C_size);
+                        printf("HERE C\n");
+                        while(cyhal_i2s_is_tx_busy(&i2s)){}
+                        cyhal_i2s_stop_tx(&i2s);
+                        scale++;
+                        break;
+                    case 1:
+                        cyhal_i2s_start_tx(&i2s);
+                        cyhal_i2s_write_async(&i2s, D, D_size);
+                        printf("HERE D\n");
+                        while(cyhal_i2s_is_tx_busy(&i2s)){}
+                        cyhal_i2s_stop_tx(&i2s);
+                        scale++;
+                        break;
+                    case 2:
+                        cyhal_i2s_start_tx(&i2s);
+                        cyhal_i2s_write_async(&i2s, E, E_size);
+                        printf("HERE E\n");
+                        while(cyhal_i2s_is_tx_busy(&i2s)){}
+                        cyhal_i2s_stop_tx(&i2s);
+                        scale++;
+                        break;
+                    case 3:
+                        cyhal_i2s_start_tx(&i2s);
+                        cyhal_i2s_write_async(&i2s, F, F_size);
+                        printf("HERE F\n");
+                        while(cyhal_i2s_is_tx_busy(&i2s)){}
+                        cyhal_i2s_stop_tx(&i2s);
+                        scale++;
+                        break;
+                    case 4:
+                        cyhal_i2s_start_tx(&i2s);
+                        cyhal_i2s_write_async(&i2s, G, G_size);
+                        printf("HERE G\n");
+                        cyhal_i2s_start_tx(&i2s);
+                        while(cyhal_i2s_is_tx_busy(&i2s)){}
+                        cyhal_i2s_stop_tx(&i2s);
+                        scale++;
+                        break;
+                    case 5:
+                        cyhal_i2s_start_tx(&i2s);
+                        cyhal_i2s_write_async(&i2s, A, A_size);
+                        printf("HERE A\n");
+                        cyhal_i2s_start_tx(&i2s);
+                        while(cyhal_i2s_is_tx_busy(&i2s)){}
+                        cyhal_i2s_stop_tx(&i2s);
+                        scale++;
+                        break;
+                    case 6:
+                        cyhal_i2s_start_tx(&i2s);
+                        cyhal_i2s_write_async(&i2s, B, B_size);
+                        printf("HERE B\n");
+                        cyhal_i2s_start_tx(&i2s);
+                        while(cyhal_i2s_is_tx_busy(&i2s)){}
+                        cyhal_i2s_stop_tx(&i2s);
+                        scale++;
+                        break;
+                    case 7:
+                        cyhal_i2s_start_tx(&i2s);
+                        cyhal_i2s_write_async(&i2s, C, C_size);
+                        printf("HERE C\n");
+                        cyhal_i2s_start_tx(&i2s);
+                        while(cyhal_i2s_is_tx_busy(&i2s)){}
+                        cyhal_i2s_stop_tx(&i2s);
+                        scale++;
+                        break;
+                    default:
+                        scale = 0;
+                        break;
+                    }
+            }
         }
         cInputIndex = 0;
         free(args);
