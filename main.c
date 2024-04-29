@@ -213,12 +213,12 @@ void task_read_distance() {
     TickType_t lastticktime = xTaskGetTickCount();
     for (;;) {
         xTaskDelayUntil( &lastticktime, 100);
-        // setAddress(0x29); // This is the sensor WITH GPIO0 connected
-        // range_sensor1 = readRange();
-        // status_sensor1 = readRangeStatus();
-        // if (status_sensor1 != VL6180X_ERROR_NONE) {
-        //     range_sensor1 = -1;
-        // }
+        setAddress(0x29); // This is the sensor WITH GPIO0 connected
+        range_sensor1 = readRange();
+        status_sensor1 = readRangeStatus();
+        if (status_sensor1 != VL6180X_ERROR_NONE) {
+            range_sensor1 = -1;
+        }
         setAddress(0x30);
         range_sensor2 = readRange();
         status_sensor2 = readRangeStatus();
