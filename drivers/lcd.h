@@ -79,6 +79,7 @@
   void setCursor(uint8_t, uint8_t); 
   void command(uint8_t);
   void writeString(char *s);
+  void writeStringWithoutClear(int row, int col, char *s, int len);
 //   void init();
 //   void oled_init();
 // ////compatibility API function aliases

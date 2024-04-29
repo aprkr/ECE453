@@ -62,7 +62,7 @@ uint8_t _i2caddr = ADDRESS_DEFAULT;
     @returns True if chip found and initialized, False otherwise
 */
 /**************************************************************************/
-distancebegin() {
+int distancebegin() {
 
   printf("In distance init\n\r");
   cy_rslt_t rslt;
@@ -210,8 +210,10 @@ void loadSettings(void) {
 /**************************************************************************/
 
 uint8_t readRange(void) {
+  TickType_t lastticktime = xTaskGetTickCount();
   // wait for device to be ready for range measurement
   while (!(read8(VL6180X_REG_RESULT_RANGE_STATUS) & 0x01))
+    xTaskDelayUntil( &lastticktime, 2);
     ;
 
   // Start a range measurement
@@ -219,6 +221,7 @@ uint8_t readRange(void) {
 
   // Poll until bit 2 is set
   while (!(read8(VL6180X_REG_RESULT_INTERRUPT_STATUS_GPIO) & 0x04))
+  xTaskDelayUntil( &lastticktime, 2);
     ;
 
   // read range in mm

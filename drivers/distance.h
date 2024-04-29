@@ -6,6 +6,12 @@
 #include "cy_pdl.h"
 #include "cyhal.h"
 #include "cybsp.h"
+#include <stdio.h>
+
+/* RTOS header files */
+#include <FreeRTOS.h>
+#include <FreeRTOSConfig.h>
+#include <task.h>
 
 #define VL6180X_DEFAULT_I2C_ADDR 0x29 ///< The fixed I2C addres
 
