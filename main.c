@@ -256,73 +256,90 @@ void task_read_serial() {
             printf("Second sensor ");
             printf("Range: %d\n\r", range_sensor2);
         } else if (strcmp(args[0], "i2s") == 0) {
-            for(int i = 0; i < 16; i++){
+            TickType_t lastticktime = xTaskGetTickCount();
+            for(int i = 0; i < 48; i++){
                 switch(scale){
                     case 0:
                         cyhal_i2s_start_tx(&i2s);
-                        cyhal_i2s_write_async(&i2s, C, C_size);
+                        cyhal_i2s_write_async(&i2s, C, C_size/16);
                         printf("HERE C\n");
-                        while(cyhal_i2s_is_tx_busy(&i2s)){}
+                        while(cyhal_i2s_is_tx_busy(&i2s)){
+                            xTaskDelayUntil( &lastticktime, 10);
+                        }
                         cyhal_i2s_stop_tx(&i2s);
                         scale++;
                         break;
                     case 1:
                         cyhal_i2s_start_tx(&i2s);
-                        cyhal_i2s_write_async(&i2s, D, D_size);
+                        cyhal_i2s_write_async(&i2s, D, D_size/16);
                         printf("HERE D\n");
-                        while(cyhal_i2s_is_tx_busy(&i2s)){}
+                        while(cyhal_i2s_is_tx_busy(&i2s)){
+                            xTaskDelayUntil( &lastticktime, 10);
+                        }
                         cyhal_i2s_stop_tx(&i2s);
                         scale++;
                         break;
                     case 2:
                         cyhal_i2s_start_tx(&i2s);
-                        cyhal_i2s_write_async(&i2s, E, E_size);
+                        cyhal_i2s_write_async(&i2s, E, E_size/16);
                         printf("HERE E\n");
-                        while(cyhal_i2s_is_tx_busy(&i2s)){}
+                        while(cyhal_i2s_is_tx_busy(&i2s)){
+                            xTaskDelayUntil( &lastticktime, 10);
+                        }
                         cyhal_i2s_stop_tx(&i2s);
                         scale++;
                         break;
                     case 3:
                         cyhal_i2s_start_tx(&i2s);
-                        cyhal_i2s_write_async(&i2s, F, F_size);
+                        cyhal_i2s_write_async(&i2s, F, F_size/16);
                         printf("HERE F\n");
-                        while(cyhal_i2s_is_tx_busy(&i2s)){}
+                        while(cyhal_i2s_is_tx_busy(&i2s)){
+                            xTaskDelayUntil( &lastticktime, 10);
+                        }
                         cyhal_i2s_stop_tx(&i2s);
                         scale++;
                         break;
                     case 4:
                         cyhal_i2s_start_tx(&i2s);
-                        cyhal_i2s_write_async(&i2s, G, G_size);
+                        cyhal_i2s_write_async(&i2s, G, G_size/16);
                         printf("HERE G\n");
                         cyhal_i2s_start_tx(&i2s);
-                        while(cyhal_i2s_is_tx_busy(&i2s)){}
+                        while(cyhal_i2s_is_tx_busy(&i2s)){
+                            xTaskDelayUntil( &lastticktime, 10);
+                        }
                         cyhal_i2s_stop_tx(&i2s);
                         scale++;
                         break;
                     case 5:
                         cyhal_i2s_start_tx(&i2s);
-                        cyhal_i2s_write_async(&i2s, A, A_size);
+                        cyhal_i2s_write_async(&i2s, A, A_size/16);
                         printf("HERE A\n");
                         cyhal_i2s_start_tx(&i2s);
-                        while(cyhal_i2s_is_tx_busy(&i2s)){}
+                        while(cyhal_i2s_is_tx_busy(&i2s)){
+                            xTaskDelayUntil( &lastticktime, 10);
+                        }
                         cyhal_i2s_stop_tx(&i2s);
                         scale++;
                         break;
                     case 6:
                         cyhal_i2s_start_tx(&i2s);
-                        cyhal_i2s_write_async(&i2s, B, B_size);
+                        cyhal_i2s_write_async(&i2s, B, B_size/16);
                         printf("HERE B\n");
                         cyhal_i2s_start_tx(&i2s);
-                        while(cyhal_i2s_is_tx_busy(&i2s)){}
+                        while(cyhal_i2s_is_tx_busy(&i2s)){
+                            xTaskDelayUntil( &lastticktime, 10);
+                        }
                         cyhal_i2s_stop_tx(&i2s);
                         scale++;
                         break;
                     case 7:
                         cyhal_i2s_start_tx(&i2s);
-                        cyhal_i2s_write_async(&i2s, C, C_size);
+                        cyhal_i2s_write_async(&i2s, C, C_size/16);
                         printf("HERE C\n");
                         cyhal_i2s_start_tx(&i2s);
-                        while(cyhal_i2s_is_tx_busy(&i2s)){}
+                        while(cyhal_i2s_is_tx_busy(&i2s)){
+                            xTaskDelayUntil( &lastticktime, 10);
+                        }
                         cyhal_i2s_stop_tx(&i2s);
                         scale++;
                         break;
