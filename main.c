@@ -25,6 +25,15 @@
 #include "drivers/gpio.h"
 
 #include "sounds/262Hz.h"
+#include "sounds/272Hz.h"
+#include "sounds/282Hz.h"
+#include "sounds/292Hz.h"
+#include "sounds/302Hz.h"
+#include "sounds/312Hz.h"
+#include "sounds/322Hz.h"
+#include "sounds/332Hz.h"
+#include "sounds/342Hz.h"
+#include "sounds/352Hz.h"
 #include "sounds/362Hz.h"
 
 /*******************************************************************************
@@ -39,6 +48,8 @@ volatile uint32_t adc1_value;
 volatile uint8_t curLcdMode = 0;
 volatile uint8_t buttonPressed = 0;
 volatile uint8_t scale;
+volatile uint16_t curWave[1600];
+volatile int curWaveSize = 1600;
 
 // Function declarations
 void task_read_serial();
@@ -135,10 +146,53 @@ int main(void)
     }
 }
 
+void copy_audio(const int16_t *array, int size) {
+    int divisor = range_sensor2 / 26 + 1; // map to a value between 1 and 10
+    for (int i = 0; i < size; i++) {
+        curWave[i] = array[i] / divisor;
+    }
+    curWaveSize = size;
+}
+
 void i2s_event_handler(void* arg, cyhal_i2s_event_t event) {
         cyhal_i2s_t* i2s = (cyhal_i2s_t*)arg;
     if (0u != (event & CYHAL_I2S_ASYNC_TX_COMPLETE)) {
-        cyhal_i2s_write_async(i2s, _362Hz, _362Hz_size);
+        switch (range_sensor1 / 20) {
+        case 0:
+            copy_audio(_262Hz, _262Hz_size);
+            break;
+        case 1:
+            copy_audio(_272Hz, _262Hz_size);
+            break;
+        case 2:
+            copy_audio(_282Hz, _262Hz_size);
+            break;
+        case 3:
+            copy_audio(_292Hz, _262Hz_size);
+            break;
+        case 4:
+            copy_audio(_302Hz, _262Hz_size);
+            break;
+        case 5:
+            copy_audio(_312Hz, _262Hz_size);
+            break;
+        case 6:
+            copy_audio(_322Hz, _262Hz_size);
+            break;
+        case 7:
+            copy_audio(_332Hz, _262Hz_size);
+            break;
+        case 8:
+            copy_audio(_342Hz, _262Hz_size);
+            break;
+        case 9:
+            copy_audio(_352Hz, _262Hz_size);
+            break;
+        default:
+            copy_audio(_362Hz, _362Hz_size);
+            break;
+        }
+        cyhal_i2s_write_async(i2s, curWave, curWaveSize);
     }
 }
 
