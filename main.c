@@ -35,6 +35,7 @@
 #include "sounds/342Hz.h"
 #include "sounds/352Hz.h"
 #include "sounds/362Hz.h"
+#include "sounds/162Hz.h"
 
 /*******************************************************************************
  * External Global Variables
@@ -147,7 +148,14 @@ int main(void)
 }
 
 void copy_audio(const int16_t *array, int size) {
-    int divisor = range_sensor2 / 26 + 1; // map to a value between 1 and 10
+    int divisor;
+    if (curLcdMode == 1) {
+        int adcmap = adc1_value / 9411; // map adc to 0 - 255
+        divisor = ((range_sensor2 + adcmap) / 2) / 26 + 1; // map to a value between 1 and 10
+    } else {
+        divisor = range_sensor2 / 26 + 1;
+    }
+    
     for (int i = 0; i < size; i++) {
         curWave[i] = array[i] / divisor;
     }
@@ -157,7 +165,14 @@ void copy_audio(const int16_t *array, int size) {
 void i2s_event_handler(void* arg, cyhal_i2s_event_t event) {
         cyhal_i2s_t* i2s = (cyhal_i2s_t*)arg;
     if (0u != (event & CYHAL_I2S_ASYNC_TX_COMPLETE)) {
-        switch (range_sensor1 / 20) {
+        int compare;
+        if (curLcdMode == 1) {
+            int adcmap = adc0_value / 9411;
+            compare = ((range_sensor1 + adcmap) / 2) / 20;
+        } else {
+            compare = range_sensor1 / 20;
+        }
+        switch (compare) {
         case 0:
             copy_audio(_262Hz, _262Hz_size);
             break;
@@ -189,7 +204,7 @@ void i2s_event_handler(void* arg, cyhal_i2s_event_t event) {
             copy_audio(_352Hz, _262Hz_size);
             break;
         default:
-            copy_audio(_362Hz, _362Hz_size);
+            copy_audio(_162Hz, _162Hz_size);
             break;
         }
         cyhal_i2s_write_async(i2s, curWave, curWaveSize);
@@ -207,7 +222,7 @@ void task_read_switch() {
             if (curLcdMode == 0) {
                 writeString("Range 1:\nRange 2:\nADC value 1:\nADC value 2:");
             } else if (curLcdMode == 1) {
-                writeString("User mode");
+                writeString("ADC mode");
             }
         } else if (cyhal_gpio_read(BUTTON_PIN) == true && buttonPressed == 1) {
             buttonPressed ^= 1;
@@ -264,8 +279,8 @@ void task_lcd_status() {
             sprintf(lcdstring,"%7lu",adc1_value);
             writeStringWithoutClear(3, 12, lcdstring, 7);
         } else {
-            sprintf(lcdstring, "User Mode Task");
-            writeStringWithoutClear(1, 0, lcdstring, 4);
+            // sprintf(lcdstring, "User Mode Task");
+            // writeStringWithoutClear(1, 0, lcdstring, 4);
         }
     }
 }
