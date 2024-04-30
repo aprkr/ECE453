@@ -20,10 +20,8 @@
 #include "drivers/lcd.h"
 #include "drivers/adc.h"
 #include "drivers/i2s.h"
-#include "sounds/wave.h"
 #include "drivers/distance.h"
 #include "drivers/tlv320aic14kibt.h"
-#include "sounds/wave.h"
 #include "drivers/gpio.h"
 
 #include "sounds/A.h"
@@ -33,6 +31,8 @@
 #include "sounds/E.h"
 #include "sounds/F.h"
 #include "sounds/G.h"
+
+#include "sounds/262Hz.h"
 
 /*******************************************************************************
  * External Global Variables
@@ -55,6 +55,7 @@ void task_blink_led();
 void task_read_adc();
 void task_read_switch();
 void task_sound();
+void i2s_event_handler(void* arg, cyhal_i2s_event_t event) ;
 
 
 int main(void)
@@ -78,6 +79,11 @@ int main(void)
     distancebegin();
     i2s_init();
     gpio_init();
+    cyhal_i2s_register_callback(&i2s, &i2s_event_handler, &i2s);
+    cyhal_i2s_enable_event(&i2s, CYHAL_I2S_ASYNC_TX_COMPLETE, CYHAL_ISR_PRIORITY_DEFAULT, true);
+    cy_rslt_t result = cyhal_i2s_set_async_mode(&i2s, CYHAL_ASYNC_DMA, CYHAL_DMA_PRIORITY_DEFAULT);
+    result = cyhal_i2s_write_async(&i2s, _262Hz, _262Hz_size);
+    result = cyhal_i2s_start_tx(&i2s);
 
 
     xTaskCreate(
@@ -128,13 +134,13 @@ int main(void)
         1,
         NULL);
     
-    xTaskCreate(
-        task_sound,
-        "Play sound task",
-        configMINIMAL_STACK_SIZE,
-        NULL,
-        2,
-        NULL);
+    // xTaskCreate(
+    //     task_sound,
+    //     "Play sound task",
+    //     configMINIMAL_STACK_SIZE,
+    //     NULL,
+    //     2,
+    //     NULL);
 
     // Start the scheduler
     vTaskStartScheduler();
@@ -156,6 +162,13 @@ void i2s_buff(cyhal_i2s_t i2s, int16_t buf, int size) {
 
 }
 
+void i2s_event_handler(void* arg, cyhal_i2s_event_t event) {
+        cyhal_i2s_t* i2s = (cyhal_i2s_t*)arg;
+    if (0u != (event & CYHAL_I2S_ASYNC_TX_COMPLETE)) {
+        cyhal_i2s_write_async(i2s, _262Hz, _262Hz_size);
+    }
+}
+
 void task_sound() {
     TickType_t lastticktime = xTaskGetTickCount();
     // cut sound files to start on a rise at 0, and end on a rise to 0
@@ -166,7 +179,7 @@ void task_sound() {
         xTaskDelayUntil( &lastticktime, 50);
         if (range_sensor1 > 100) {
             
-            cyhal_i2s_write_async(&i2s, C, C_size/30);
+            cyhal_i2s_write_async(&i2s, _262Hz, _262Hz_size);
             // printf("HERE C\n");
             // cyhal_i2s_start_tx(&i2s);
             // while(cyhal_i2s_is_tx_busy(&i2s)){
@@ -175,7 +188,7 @@ void task_sound() {
             // cyhal_i2s_stop_tx(&i2s);
         } else {
             // cyhal_i2s_start_tx(&i2s);
-            cyhal_i2s_write_async(&i2s, D, D_size/30);
+            cyhal_i2s_write_async(&i2s, _262Hz, _262Hz_size);
             // printf("HERE C\n");
             // cyhal_i2s_start_tx(&i2s);
             // while(cyhal_i2s_is_tx_busy(&i2s)){
