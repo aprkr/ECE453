@@ -24,15 +24,8 @@
 #include "drivers/tlv320aic14kibt.h"
 #include "drivers/gpio.h"
 
-#include "sounds/A.h"
-#include "sounds/B.h"
-#include "sounds/C.h"
-#include "sounds/D.h"
-#include "sounds/E.h"
-#include "sounds/F.h"
-#include "sounds/G.h"
-
 #include "sounds/262Hz.h"
+#include "sounds/362Hz.h"
 
 /*******************************************************************************
  * External Global Variables
@@ -81,9 +74,9 @@ int main(void)
     gpio_init();
     cyhal_i2s_register_callback(&i2s, &i2s_event_handler, &i2s);
     cyhal_i2s_enable_event(&i2s, CYHAL_I2S_ASYNC_TX_COMPLETE, CYHAL_ISR_PRIORITY_DEFAULT, true);
-    cy_rslt_t result = cyhal_i2s_set_async_mode(&i2s, CYHAL_ASYNC_DMA, CYHAL_DMA_PRIORITY_DEFAULT);
-    result = cyhal_i2s_write_async(&i2s, _262Hz, _262Hz_size);
-    result = cyhal_i2s_start_tx(&i2s);
+    cyhal_i2s_set_async_mode(&i2s, CYHAL_ASYNC_DMA, CYHAL_DMA_PRIORITY_DEFAULT);
+    cyhal_i2s_write_async(&i2s, _362Hz, _362Hz_size);
+    cyhal_i2s_start_tx(&i2s);
 
 
     xTaskCreate(
@@ -133,14 +126,6 @@ int main(void)
         NULL,
         1,
         NULL);
-    
-    // xTaskCreate(
-    //     task_sound,
-    //     "Play sound task",
-    //     configMINIMAL_STACK_SIZE,
-    //     NULL,
-    //     2,
-    //     NULL);
 
     // Start the scheduler
     vTaskStartScheduler();
@@ -150,53 +135,10 @@ int main(void)
     }
 }
 
-void i2s_buff(cyhal_i2s_t i2s, int16_t buf, int size) {
-    cyhal_i2s_start_tx(&i2s);
-    cyhal_i2s_write_async(&i2s, buf, size);
-    cyhal_i2s_start_tx(&i2s);
-    TickType_t lastticktime = xTaskGetTickCount();
-    while(cyhal_i2s_is_tx_busy(&i2s)){
-        xTaskDelayUntil( &lastticktime, 10);
-    }
-    cyhal_i2s_stop_tx(&i2s);
-
-}
-
 void i2s_event_handler(void* arg, cyhal_i2s_event_t event) {
         cyhal_i2s_t* i2s = (cyhal_i2s_t*)arg;
     if (0u != (event & CYHAL_I2S_ASYNC_TX_COMPLETE)) {
-        cyhal_i2s_write_async(i2s, _262Hz, _262Hz_size);
-    }
-}
-
-void task_sound() {
-    TickType_t lastticktime = xTaskGetTickCount();
-    // cut sound files to start on a rise at 0, and end on a rise to 0
-    // switch to interrupt based rather than timer based
-    // fill when buffer is empty
-    cyhal_i2s_start_tx(&i2s);
-    for (;;) {
-        xTaskDelayUntil( &lastticktime, 50);
-        if (range_sensor1 > 100) {
-            
-            cyhal_i2s_write_async(&i2s, _262Hz, _262Hz_size);
-            // printf("HERE C\n");
-            // cyhal_i2s_start_tx(&i2s);
-            // while(cyhal_i2s_is_tx_busy(&i2s)){
-            //     xTaskDelayUntil( &lastticktime, 1);
-            // }
-            // cyhal_i2s_stop_tx(&i2s);
-        } else {
-            // cyhal_i2s_start_tx(&i2s);
-            cyhal_i2s_write_async(&i2s, _262Hz, _262Hz_size);
-            // printf("HERE C\n");
-            // cyhal_i2s_start_tx(&i2s);
-            // while(cyhal_i2s_is_tx_busy(&i2s)){
-            //     xTaskDelayUntil( &lastticktime, 1);
-            // }
-            // cyhal_i2s_stop_tx(&i2s);
-        }
-        
+        cyhal_i2s_write_async(i2s, _362Hz, _362Hz_size);
     }
 }
 
@@ -218,6 +160,7 @@ void task_read_switch() {
         }
         if (cyhal_gpio_read(SWITCH_PIN) == true) { // having true = off
             noBacklight();
+            cyhal_i2s_enable_event(&i2s, CYHAL_I2S_ASYNC_TX_COMPLETE, CYHAL_ISR_PRIORITY_DEFAULT, false);
             vTaskSuspendAll();
             while(cyhal_gpio_read(SWITCH_PIN) == true) {
                 cyhal_syspm_sleep();
@@ -321,98 +264,7 @@ void task_read_serial() {
             printf("Second sensor ");
             printf("Range: %d\n\r", range_sensor2);
         } else if (strcmp(args[0], "i2s") == 0) {
-            TickType_t lastticktime = xTaskGetTickCount();
-            for(int i = 0; i < 48; i++){
-                switch(scale){
-                    case 0:
-                        cyhal_i2s_start_tx(&i2s);
-                        cyhal_i2s_write_async(&i2s, C, C_size/16);
-                        printf("HERE C\n");
-                        while(cyhal_i2s_is_tx_busy(&i2s)){
-                            xTaskDelayUntil( &lastticktime, 10);
-                        }
-                        cyhal_i2s_stop_tx(&i2s);
-                        scale++;
-                        break;
-                    case 1:
-                        cyhal_i2s_start_tx(&i2s);
-                        cyhal_i2s_write_async(&i2s, D, D_size/16);
-                        printf("HERE D\n");
-                        while(cyhal_i2s_is_tx_busy(&i2s)){
-                            xTaskDelayUntil( &lastticktime, 10);
-                        }
-                        cyhal_i2s_stop_tx(&i2s);
-                        scale++;
-                        break;
-                    case 2:
-                        cyhal_i2s_start_tx(&i2s);
-                        cyhal_i2s_write_async(&i2s, E, E_size/16);
-                        printf("HERE E\n");
-                        while(cyhal_i2s_is_tx_busy(&i2s)){
-                            xTaskDelayUntil( &lastticktime, 10);
-                        }
-                        cyhal_i2s_stop_tx(&i2s);
-                        scale++;
-                        break;
-                    case 3:
-                        cyhal_i2s_start_tx(&i2s);
-                        cyhal_i2s_write_async(&i2s, F, F_size/16);
-                        printf("HERE F\n");
-                        while(cyhal_i2s_is_tx_busy(&i2s)){
-                            xTaskDelayUntil( &lastticktime, 10);
-                        }
-                        cyhal_i2s_stop_tx(&i2s);
-                        scale++;
-                        break;
-                    case 4:
-                        cyhal_i2s_start_tx(&i2s);
-                        cyhal_i2s_write_async(&i2s, G, G_size/16);
-                        printf("HERE G\n");
-                        cyhal_i2s_start_tx(&i2s);
-                        while(cyhal_i2s_is_tx_busy(&i2s)){
-                            xTaskDelayUntil( &lastticktime, 10);
-                        }
-                        cyhal_i2s_stop_tx(&i2s);
-                        scale++;
-                        break;
-                    case 5:
-                        cyhal_i2s_start_tx(&i2s);
-                        cyhal_i2s_write_async(&i2s, A, A_size/16);
-                        printf("HERE A\n");
-                        cyhal_i2s_start_tx(&i2s);
-                        while(cyhal_i2s_is_tx_busy(&i2s)){
-                            xTaskDelayUntil( &lastticktime, 10);
-                        }
-                        cyhal_i2s_stop_tx(&i2s);
-                        scale++;
-                        break;
-                    case 6:
-                        cyhal_i2s_start_tx(&i2s);
-                        cyhal_i2s_write_async(&i2s, B, B_size/16);
-                        printf("HERE B\n");
-                        cyhal_i2s_start_tx(&i2s);
-                        while(cyhal_i2s_is_tx_busy(&i2s)){
-                            xTaskDelayUntil( &lastticktime, 10);
-                        }
-                        cyhal_i2s_stop_tx(&i2s);
-                        scale++;
-                        break;
-                    case 7:
-                        cyhal_i2s_start_tx(&i2s);
-                        cyhal_i2s_write_async(&i2s, C, C_size/16);
-                        printf("HERE C\n");
-                        cyhal_i2s_start_tx(&i2s);
-                        while(cyhal_i2s_is_tx_busy(&i2s)){
-                            xTaskDelayUntil( &lastticktime, 10);
-                        }
-                        cyhal_i2s_stop_tx(&i2s);
-                        scale++;
-                        break;
-                    default:
-                        scale = 0;
-                        break;
-                    }
-            }
+            printf("If you're hearing a sound, then FreeRTOS and I2S are working\n");
         }
         cInputIndex = 0;
         free(args);
