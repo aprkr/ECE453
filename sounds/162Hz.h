@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 /* Number of elements in the wave sound track */
-#define _162Hz_size 790
+#define _162Hz_size 593
 
 /* Extern reference to the wave sound track data */
 extern const int16_t _162Hz[_162Hz_size];

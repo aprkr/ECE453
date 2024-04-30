@@ -1,13 +1,13 @@
-#ifndef _302Hz_H
-#define _302Hz_H
+#ifndef _452Hz_H
+#define _452Hz_H
 
 #include <stdint.h>
 
 /* Number of elements in the wave sound track */
-#define _302Hz_size 423
+#define _452Hz_size 495
 
 /* Extern reference to the wave sound track data */
-extern const int16_t _302Hz[_302Hz_size];
+extern const int16_t _452Hz[_452Hz_size];
 
 #endif
 

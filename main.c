@@ -24,6 +24,16 @@
 #include "drivers/tlv320aic14kibt.h"
 #include "drivers/gpio.h"
 
+#include "sounds/162Hz.h"
+#include "sounds/172Hz.h"
+#include "sounds/182Hz.h"
+#include "sounds/192Hz.h"
+#include "sounds/202Hz.h"
+#include "sounds/212Hz.h"
+#include "sounds/222Hz.h"
+#include "sounds/232Hz.h"
+#include "sounds/242Hz.h"
+#include "sounds/252Hz.h"
 #include "sounds/262Hz.h"
 #include "sounds/272Hz.h"
 #include "sounds/282Hz.h"
@@ -35,14 +45,23 @@
 #include "sounds/342Hz.h"
 #include "sounds/352Hz.h"
 #include "sounds/362Hz.h"
-#include "sounds/162Hz.h"
+#include "sounds/372Hz.h"
+#include "sounds/382Hz.h"
+#include "sounds/392Hz.h"
+#include "sounds/402Hz.h"
+#include "sounds/412Hz.h"
+#include "sounds/422Hz.h"
+#include "sounds/432Hz.h"
+#include "sounds/442Hz.h"
+#include "sounds/452Hz.h"
+#include "sounds/462Hz.h"
 
 /*******************************************************************************
  * External Global Variables
  ******************************************************************************/
 volatile uint8_t range_sensor1 = 0;
 volatile uint8_t status_sensor1;
-volatile uint8_t range_sensor2 = 0;
+volatile uint8_t range_sensor2 = 0; // CHANGE THIS SO THAT WE STILL 262 HZ ON STARTUP
 volatile uint8_t status_sensor2;
 volatile uint32_t adc0_value;
 volatile uint32_t adc1_value;
@@ -166,45 +185,106 @@ void i2s_event_handler(void* arg, cyhal_i2s_event_t event) {
         cyhal_i2s_t* i2s = (cyhal_i2s_t*)arg;
     if (0u != (event & CYHAL_I2S_ASYNC_TX_COMPLETE)) {
         int compare;
+#define SOMETHING 8
         if (curLcdMode == 1) {
             int adcmap = adc0_value / 9411;
-            compare = ((range_sensor1 + adcmap) / 2) / 20;
+            compare = ((range_sensor1 + adcmap) / 2) / 8;
         } else {
-            compare = range_sensor1 / 20;
+            compare = range_sensor1 / 8;
         }
         switch (compare) {
         case 0:
-            copy_audio(_262Hz, _262Hz_size);
+            copy_audio(_162Hz, _162Hz_size);
             break;
         case 1:
-            copy_audio(_272Hz, _262Hz_size);
+            copy_audio(_172Hz, _172Hz_size);
             break;
         case 2:
-            copy_audio(_282Hz, _262Hz_size);
+            copy_audio(_182Hz, _182Hz_size);
             break;
         case 3:
-            copy_audio(_292Hz, _262Hz_size);
+            copy_audio(_192Hz, _192Hz_size);
             break;
         case 4:
-            copy_audio(_302Hz, _262Hz_size);
+            copy_audio(_202Hz, _202Hz_size);
             break;
         case 5:
-            copy_audio(_312Hz, _262Hz_size);
+            copy_audio(_212Hz, _212Hz_size);
             break;
         case 6:
-            copy_audio(_322Hz, _262Hz_size);
+            copy_audio(_222Hz, _222Hz_size);
             break;
         case 7:
-            copy_audio(_332Hz, _262Hz_size);
+            copy_audio(_232Hz, _232Hz_size);
             break;
         case 8:
-            copy_audio(_342Hz, _262Hz_size);
+            copy_audio(_242Hz, _242Hz_size);
             break;
         case 9:
-            copy_audio(_352Hz, _262Hz_size);
+            copy_audio(_252Hz, _252Hz_size);
+            break;
+        case 10:
+            copy_audio(_262Hz, _262Hz_size);
+            break;
+        case 11:
+            copy_audio(_272Hz, _272Hz_size);
+            break;
+        case 12:
+            copy_audio(_282Hz, _282Hz_size);
+            break;
+        case 13:
+            copy_audio(_292Hz, _292Hz_size);
+            break;
+        case 14:
+            copy_audio(_302Hz, _302Hz_size);
+            break;
+        case 15:
+            copy_audio(_312Hz, _312Hz_size);
+            break;
+        case 16:
+            copy_audio(_322Hz, _322Hz_size);
+            break;
+        case 17:
+            copy_audio(_332Hz, _332Hz_size);
+            break;
+        case 18:
+            copy_audio(_342Hz, _342Hz_size);
+            break;
+        case 19:
+            copy_audio(_352Hz, _352Hz_size);
+            break;
+        case 20:
+            copy_audio(_362Hz, _362Hz_size);
+            break;
+        case 21:
+            copy_audio(_372Hz, _372Hz_size);
+            break;
+        case 22:
+            copy_audio(_382Hz, _382Hz_size);
+            break;
+        case 23:
+            copy_audio(_392Hz, _392Hz_size);
+            break;
+        case 24:
+            copy_audio(_402Hz, _402Hz_size);
+            break;
+        case 25:
+            copy_audio(_412Hz, _412Hz_size);
+            break;
+        case 26:
+            copy_audio(_422Hz, _422Hz_size);
+            break;
+        case 27:
+            copy_audio(_432Hz, _432Hz_size);
+            break;
+        case 28:
+            copy_audio(_442Hz, _442Hz_size);
+            break;
+        case 29:
+            copy_audio(_452Hz, _452Hz_size);
             break;
         default:
-            copy_audio(_162Hz, _162Hz_size);
+            copy_audio(_462Hz, _462Hz_size);
             break;
         }
         cyhal_i2s_write_async(i2s, curWave, curWaveSize);
